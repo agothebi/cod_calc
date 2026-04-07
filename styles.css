@@ -144,7 +144,7 @@ main {
   width: min(680px, 95%);
   background: var(--bg-surface);
   padding: 28px;
-  margin-top: clamp(-24px, -2.8vh, -12px);
+  margin-top: clamp(-32px, -3.8vh, -18px);
   animation: slideFadeIn 0.5s ease-out 0.12s backwards;
 }
 
