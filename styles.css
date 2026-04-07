@@ -144,7 +144,7 @@ main {
   width: min(680px, 95%);
   background: var(--bg-surface);
   padding: 28px;
-  margin-top: clamp(-88px, -9.2vh, -56px);
+  margin-top: clamp(-108px, -11vh, -70px);
   animation: slideFadeIn 0.5s ease-out 0.12s backwards;
 }
 
@@ -488,7 +488,7 @@ button:focus {
 @media (max-width: 520px) {
   .hero-card {
     padding: 22px 18px;
-    margin-top: clamp(-44px, -6vh, -24px);
+    margin-top: clamp(-54px, -7.2vh, -30px);
   }
 
   .weight-row {
