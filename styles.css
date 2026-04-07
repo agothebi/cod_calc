@@ -144,7 +144,7 @@ main {
   width: min(680px, 95%);
   background: var(--bg-surface);
   padding: 28px;
-  margin-top: clamp(-32px, -3.8vh, -18px);
+  margin-top: clamp(-42px, -4.8vh, -24px);
   animation: slideFadeIn 0.5s ease-out 0.12s backwards;
 }
 
@@ -265,6 +265,10 @@ button:focus {
 
 .cta-btn:active {
   transform: scale(0.98);
+}
+
+.nowrap-arrow {
+  white-space: nowrap;
 }
 
 #results-screen {
@@ -484,7 +488,7 @@ button:focus {
 @media (max-width: 520px) {
   .hero-card {
     padding: 22px 18px;
-    margin-top: clamp(-8px, -1.3vh, -2px);
+    margin-top: clamp(-14px, -2.2vh, -6px);
   }
 
   .weight-row {
@@ -493,6 +497,26 @@ button:focus {
 
   .unit-toggle {
     justify-self: start;
+  }
+
+  .summary-bar {
+    justify-content: center;
+    text-align: center;
+  }
+
+  #summary-text {
+    flex: 1 1 100%;
+  }
+
+  .summary-bar .link-btn {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .print-btn {
+    width: 100%;
+    font-size: 0.97rem;
+    padding: 13px 14px;
   }
 }
 
