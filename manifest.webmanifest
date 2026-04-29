@@ -1,12 +1,12 @@
 {
-  "name": "Cats of Davidson Dosage Calculator",
-  "short_name": "Cats Dosage",
+  "name": "Cats Medical Calculator",
+  "short_name": "Cat Med Calc",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#fff5f0",
   "theme_color": "#fff5f0",
-  "description": "Fast dosage calculator for common cat medications.",
+  "description": "Dosage calculator for common cat medications.",
   "icons": [
     {
       "src": "logo.png",
