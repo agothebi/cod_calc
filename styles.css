@@ -313,11 +313,16 @@ button:focus {
 }
 
 .med-card {
-  padding: 16px;
+  padding: 20px;
   transform: translateY(14px);
   opacity: 0;
   position: relative;
   isolation: isolate;
+}
+
+.med-card h2 {
+  font-size: clamp(1.16rem, 2.3vw, 1.38rem);
+  margin-bottom: 6px;
 }
 
 .screen.active .card-enter {
@@ -365,14 +370,14 @@ button:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .treats-badge {
   background: rgba(255, 255, 255, 0.6);
   border-radius: 999px;
-  padding: 5px 9px;
-  font-size: 0.72rem;
+  padding: 4px 8px;
+  font-size: 0.67rem;
   text-transform: uppercase;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -381,25 +386,28 @@ button:focus {
 .concentration {
   color: var(--text-secondary);
   margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 0.94rem;
 }
 
 .dosage-display {
-  margin: 10px 0;
+  margin: 12px 0;
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.7);
-  padding: 12px;
+  padding: 11px;
   text-align: center;
   font-family: "Sora", sans-serif;
-  font-size: clamp(1.35rem, 3.2vw, 2.35rem);
+  font-size: clamp(1.25rem, 3vw, 2.18rem);
   font-weight: 900;
   color: var(--accent-hover);
 }
 
 .albon-rows {
-  margin: 10px 0;
+  margin: 12px 0;
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.7);
   padding: 10px;
+  font-size: 0.95rem;
 }
 
 .albon-row + .albon-row {
@@ -410,15 +418,16 @@ button:focus {
   margin-bottom: 0;
   color: #4d4d4d;
   font-weight: 700;
+  font-size: 0.94rem;
 }
 
 .med-check-row {
-  margin-top: 14px;
+  margin-top: 16px;
   margin-bottom: 0;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 9px;
+  padding: 8px 11px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.75);
   border: 2px solid rgba(255, 255, 255, 0.85);
@@ -435,23 +444,23 @@ button:focus {
 }
 
 .med-check-box {
-  width: 24px;
-  height: 24px;
-  border-radius: 9px;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
   border: 2px solid #53a85f;
   background: #f2fff3;
   box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1);
   position: relative;
-  flex: 0 0 24px;
+  flex: 0 0 22px;
 }
 
 .med-check-box::after {
   content: "";
   position: absolute;
-  left: 7px;
-  top: 3px;
-  width: 6px;
-  height: 12px;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 11px;
   border: solid #fff;
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
@@ -460,7 +469,7 @@ button:focus {
 
 .med-check-label {
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   color: #2f5c37;
 }
 
