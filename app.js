@@ -4,6 +4,18 @@ let currentWeightLbs = null;
 let currentUnit = "lbs";
 let catName = "";
 let currentResults = null;
+const FORMULAS = {
+  lbToKg: 0.45359237,
+  medications: {
+    metronidazole: { mgPerKg: 10, concentrationMgPerML: 50 },
+    pyrantel: { mlPerLbs: 0.1, concentrationLabel: "50mg / 1ml" },
+    albon: { mgPerKg: 55, concentrationMgPerML: 10, concentrationLabel: "50mg / 5ml" },
+    panacur: { mgPerKg: 50, concentrationMgPerML: 100 }
+  }
+};
+const IOS_INSTALL_DISMISSED_KEY = "iosInstallHintDismissed";
+const IOS_INSTALL_LAST_SHOWN_KEY = "iosInstallHintLastShownAt";
+const IOS_INSTALL_COOLDOWN_MS = 1000 * 60 * 60 * 24 * 30;
 
 function formatML(value) {
   return value.toFixed(2);
@@ -31,22 +43,23 @@ function validateWeight(weightLbs) {
 
 function calculateFromLbs(weightLbs) {
   // Shared intermediate value from formulas source-of-truth.
-  const weightKg = weightLbs * 0.45359237;
+  const weightKg = weightLbs * FORMULAS.lbToKg;
 
   // Metronidazole
-  const metroMgNeeded = weightKg * 10;
-  const metroDosageML = metroMgNeeded / 50;
+  const metroMgNeeded = weightKg * FORMULAS.medications.metronidazole.mgPerKg;
+  const metroDosageML = metroMgNeeded / FORMULAS.medications.metronidazole.concentrationMgPerML;
 
   // Pyrantel
-  const pyrantelDosageML = weightLbs / 10;
+  const pyrantelDosageML = weightLbs * FORMULAS.medications.pyrantel.mlPerLbs;
 
   // Albon
-  const albonMgNeeded = weightKg * 55;
-  const albonDay1ML = albonMgNeeded / 50;
+  const albonMgNeeded = weightKg * FORMULAS.medications.albon.mgPerKg;
+  const albonDay1ML = albonMgNeeded / FORMULAS.medications.albon.concentrationMgPerML;
   const albonDay2to9ML = albonDay1ML / 2;
 
   // Panacur
-  const panacurDosageML = weightKg / 2;
+  const panacurMgNeeded = weightKg * FORMULAS.medications.panacur.mgPerKg;
+  const panacurDosageML = panacurMgNeeded / FORMULAS.medications.panacur.concentrationMgPerML;
 
   return {
     input: {
@@ -71,7 +84,7 @@ function calculateFromLbs(weightLbs) {
 
 function normalizeWeight(inputWeight, unit) {
   if (unit === "kg") {
-    return inputWeight / 0.45359237;
+    return inputWeight / FORMULAS.lbToKg;
   }
   return inputWeight;
 }
@@ -134,7 +147,7 @@ function resetToInput() {
   const input = document.getElementById("weight-input");
   if (input && Number.isFinite(currentWeightLbs)) {
     if (currentUnit === "kg") {
-      input.value = (currentWeightLbs * 0.45359237).toFixed(2);
+      input.value = (currentWeightLbs * FORMULAS.lbToKg).toFixed(2);
     } else {
       input.value = currentWeightLbs.toFixed(2);
     }
@@ -180,6 +193,21 @@ function triggerPrint(name) {
   window.print();
 }
 
+function syncConcentrationLabels() {
+  const labelMap = {
+    "metro-concentration": `${FORMULAS.medications.metronidazole.concentrationMgPerML}mg / 1ml`,
+    "pyrantel-concentration": FORMULAS.medications.pyrantel.concentrationLabel,
+    "albon-concentration": FORMULAS.medications.albon.concentrationLabel,
+    "panacur-concentration": `${FORMULAS.medications.panacur.concentrationMgPerML}mg / 1ml`
+  };
+  Object.entries(labelMap).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = text;
+    }
+  });
+}
+
 function runVerification() {
   const epsilon = 0.005;
   const checks = [];
@@ -196,7 +224,7 @@ function runVerification() {
   checks.push(canonical.ok && formatML(canonical.results.panacur.dosageML) === "1.06");
 
   const lbsRun = calculate(8.5, "lbs");
-  const kgRun = calculate(8.5 * 0.45359237, "kg");
+  const kgRun = calculate(8.5 * FORMULAS.lbToKg, "kg");
   checks.push(
     lbsRun.ok &&
       kgRun.ok &&
@@ -206,9 +234,68 @@ function runVerification() {
   checks.push(calculate(0, "lbs").ok === false);
   checks.push(calculate("abc", "lbs").ok === false);
   checks.push(calculate(500, "lbs").ok === false);
+  checks.push(calculate(0.1, "lbs").ok === true);
+  checks.push(calculate(29.99, "lbs").ok === true);
+
+  const boundaryWeights = [0.5, 4.6875, 8.5, 16.25, 29.99];
+  boundaryWeights.forEach((lbsWeight) => {
+    const lbsResult = calculate(lbsWeight, "lbs");
+    const kgResult = calculate(lbsWeight * FORMULAS.lbToKg, "kg");
+    checks.push(
+      lbsResult.ok &&
+        kgResult.ok &&
+        formatML(lbsResult.results.metronidazole.dosageML) === formatML(kgResult.results.metronidazole.dosageML) &&
+        formatML(lbsResult.results.pyrantel.dosageML) === formatML(kgResult.results.pyrantel.dosageML) &&
+        formatML(lbsResult.results.albon.day1ML) === formatML(kgResult.results.albon.day1ML) &&
+        formatML(lbsResult.results.albon.day2to9ML) === formatML(kgResult.results.albon.day2to9ML) &&
+        formatML(lbsResult.results.panacur.dosageML) === formatML(kgResult.results.panacur.dosageML)
+    );
+  });
 
   const passed = checks.every(Boolean);
   return { passed, checks, passedCount: checks.filter(Boolean).length, total: checks.length };
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((error) => {
+      // eslint-disable-next-line no-console
+      console.warn("Service worker registration failed", error);
+    });
+  });
+}
+
+function isIosSafari() {
+  const ua = window.navigator.userAgent;
+  const isIphone = /iPhone/i.test(ua);
+  const isSafari = /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua);
+  return isIphone && isSafari;
+}
+
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function setupIosInstallHint() {
+  const hint = document.getElementById("ios-install-hint");
+  const dismissButton = document.getElementById("ios-install-dismiss");
+  if (!hint || !dismissButton) return;
+
+  dismissButton.addEventListener("click", () => {
+    hint.classList.remove("open");
+    window.localStorage.setItem(IOS_INSTALL_DISMISSED_KEY, "1");
+  });
+
+  if (!isIosSafari() || isStandalone()) return;
+  if (window.localStorage.getItem(IOS_INSTALL_DISMISSED_KEY) === "1") return;
+
+  const lastShownAt = Number(window.localStorage.getItem(IOS_INSTALL_LAST_SHOWN_KEY) || "0");
+  const now = Date.now();
+  if (now - lastShownAt < IOS_INSTALL_COOLDOWN_MS) return;
+
+  hint.classList.add("open");
+  window.localStorage.setItem(IOS_INSTALL_LAST_SHOWN_KEY, String(now));
 }
 
 function attachEvents() {
@@ -249,7 +336,10 @@ function attachEvents() {
 
 function init() {
   setUnit("lbs");
+  syncConcentrationLabels();
   attachEvents();
+  setupIosInstallHint();
+  registerServiceWorker();
   const verification = runVerification();
   if (!verification.passed) {
     // Keep signal visible to developers during local runs.

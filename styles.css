@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Sora:wght@400;600;700&display=swap");
-
 :root {
   --bg-base: #fff5f0;
   --bg-surface: #ffffff;
@@ -22,6 +20,8 @@
   --focus-ring: 0 0 0 3px rgba(255, 123, 92, 0.35);
   --header-logo-height: 88px;
   --page-vertical-chrome: clamp(116px, 14vh, 176px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 *,
@@ -37,12 +37,13 @@ body {
   color: var(--text-primary);
   background: radial-gradient(circle at top right, #fff4e8 0%, var(--bg-base) 45%, #fff9f5 100%);
   overflow-x: hidden;
+  padding-bottom: var(--safe-area-bottom);
 }
 
 .site-header {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 10px 16px 4px;
+  padding: calc(10px + var(--safe-area-top)) 16px 4px;
   display: flex;
   align-items: center;
   animation: fadeIn 0.3s ease-out;
@@ -218,7 +219,7 @@ button:focus {
   color: var(--text-secondary);
   background: #ececec;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
 }
 
 .unit-btn.active {
@@ -243,7 +244,7 @@ button:focus {
   font-family: "Sora", sans-serif;
   font-weight: 700;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, color 150ms ease;
 }
 
 .cta-btn {
@@ -424,6 +425,40 @@ button:focus {
   backdrop-filter: blur(3px);
 }
 
+.ios-install-hint {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + var(--safe-area-bottom));
+  z-index: 30;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  background: #fff6f2;
+  box-shadow: var(--shadow-clay), var(--shadow-clay-inset);
+}
+
+.ios-install-hint p {
+  margin: 0;
+  font-weight: 700;
+  color: #4d4d4d;
+  font-size: 0.9rem;
+}
+
+.ios-install-hint.open {
+  display: flex;
+}
+
+.ios-install-dismiss {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+}
+
 .modal-overlay.open {
   display: grid;
   animation: fadeIn 0.2s ease-out;
@@ -517,6 +552,41 @@ button:focus {
     width: 100%;
     font-size: 0.97rem;
     padding: 13px 14px;
+  }
+
+  .med-card:hover,
+  .cta-btn:hover,
+  .link-btn:hover {
+    transform: none;
+  }
+
+  .modal-overlay {
+    backdrop-filter: none;
+  }
+
+  .unit-btn,
+  .link-btn,
+  .secondary-btn {
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 521px) {
+  .ios-install-hint {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0s !important;
+  }
+
+  .screen {
+    transform: none;
   }
 }
 
