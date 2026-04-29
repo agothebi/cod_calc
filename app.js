@@ -190,6 +190,11 @@ function applyPrintMedicationVisibility(selectedMeds) {
 
 function resetToInput() {
   showScreen("input-screen");
+  catName = "";
+  const modalNameInput = document.getElementById("cat-name-input");
+  if (modalNameInput) {
+    modalNameInput.value = "";
+  }
   const input = document.getElementById("weight-input");
   if (input && Number.isFinite(currentWeightLbs)) {
     if (currentUnit === "kg") {
@@ -210,6 +215,7 @@ function openPrintModal() {
   setResultsMessage("");
   const modal = document.getElementById("print-modal");
   const nameInput = document.getElementById("cat-name-input");
+  document.body.classList.add("modal-open");
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   if (nameInput) {
@@ -220,6 +226,7 @@ function openPrintModal() {
 
 function closePrintModal() {
   const modal = document.getElementById("print-modal");
+  document.body.classList.remove("modal-open");
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
 }
