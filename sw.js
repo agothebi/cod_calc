@@ -1,6 +1,6 @@
 // IMPORTANT: bump this value on every deploy that changes app assets
 // (index.html, styles.css, app.js, manifest.webmanifest, logo.png, icons).
-const CACHE_VERSION = "cats-davidson-v2";
+const CACHE_VERSION = "cats-davidson-v3";
 const APP_SHELL_ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./logo.png", "./manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
