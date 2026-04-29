@@ -138,6 +138,73 @@
               <span class="med-check-label">Medication provided</span>
             </label>
           </article>
+
+          <article class="med-card clay-card ponazuril card-enter" data-medication="ponazuril">
+            <div class="badge-row">
+              <span class="treats-badge">Coccidia support</span>
+              <span class="card-icon" aria-hidden="true">•</span>
+            </div>
+            <h2>Ponazuril</h2>
+            <p id="ponazuril-concentration" class="concentration">50mg / 1ml</p>
+            <div class="dosage-display"><span id="ponazuril-value">0.00</span> mL</div>
+            <p class="schedule">50mg/kg dosing target</p>
+            <label class="med-check-row" for="med-check-ponazuril">
+              <input id="med-check-ponazuril" class="med-check-input" type="checkbox" data-medication="ponazuril" />
+              <span class="med-check-box" aria-hidden="true"></span>
+              <span class="med-check-label">Medication provided</span>
+            </label>
+          </article>
+
+          <article class="med-card clay-card selamectin card-enter" data-medication="selamectin">
+            <div class="badge-row">
+              <span class="treats-badge">Topical parasite support</span>
+              <span class="card-icon" aria-hidden="true">•</span>
+            </div>
+            <h2>Topical Selamectin</h2>
+            <p id="selamectin-concentration" class="concentration">120mg / 1ml</p>
+            <div class="albon-rows">
+              <div class="albon-row"><strong>Low (6mg/kg):</strong> <span id="selamectin-low-value">0.00</span> mL</div>
+              <div class="albon-row"><strong>High (12mg/kg):</strong> <span id="selamectin-high-value">0.00</span> mL</div>
+            </div>
+            <p class="schedule">Dose range: 6-12mg/kg</p>
+            <label class="med-check-row" for="med-check-selamectin">
+              <input id="med-check-selamectin" class="med-check-input" type="checkbox" data-medication="selamectin" />
+              <span class="med-check-box" aria-hidden="true"></span>
+              <span class="med-check-label">Medication provided</span>
+            </label>
+          </article>
+
+          <article class="med-card clay-card nitenpyram card-enter" data-medication="nitenpyram">
+            <div class="badge-row">
+              <span class="treats-badge">Flea knockdown</span>
+              <span class="card-icon" aria-hidden="true">•</span>
+            </div>
+            <h2>Nitenpyram</h2>
+            <p id="nitenpyram-concentration" class="concentration">11.4mg tablet</p>
+            <div class="dosage-display"><span id="nitenpyram-value">0</span> tablet</div>
+            <p id="nitenpyram-note" class="schedule">Use only for 2-20 lbs: fixed 1 tablet</p>
+            <label class="med-check-row" for="med-check-nitenpyram">
+              <input id="med-check-nitenpyram" class="med-check-input" type="checkbox" data-medication="nitenpyram" />
+              <span class="med-check-box" aria-hidden="true"></span>
+              <span class="med-check-label">Medication provided</span>
+            </label>
+          </article>
+
+          <article class="med-card clay-card praziquantel card-enter" data-medication="praziquantel">
+            <div class="badge-row">
+              <span class="treats-badge">Tapeworm support</span>
+              <span class="card-icon" aria-hidden="true">•</span>
+            </div>
+            <h2>Praziquantel</h2>
+            <p id="praziquantel-concentration" class="concentration">23mg tablet</p>
+            <div class="dosage-display"><span id="praziquantel-value">0.00 mg (0.00 tab)</span></div>
+            <p class="schedule">5mg/kg target (no tablet rounding)</p>
+            <label class="med-check-row" for="med-check-praziquantel">
+              <input id="med-check-praziquantel" class="med-check-input" type="checkbox" data-medication="praziquantel" />
+              <span class="med-check-box" aria-hidden="true"></span>
+              <span class="med-check-label">Medication provided</span>
+            </label>
+          </article>
         </div>
 
         <button id="print-open-btn" type="button" class="cta-btn print-btn">
@@ -203,6 +270,31 @@
         <p>Dosage: <span id="print-panacur"></span> mL — 3 consecutive days at weeks 2, 5, 8, and 12</p>
       </div>
       <hr id="print-sep-panacur" />
+      <div id="print-med-ponazuril" class="print-med" data-medication="ponazuril">
+        <h3>PONAZURIL (50mg/1ml)</h3>
+        <p>Treats: Coccidia support</p>
+        <p>Dosage: <span id="print-ponazuril"></span> mL — 50mg/kg target</p>
+      </div>
+      <hr id="print-sep-ponazuril" />
+      <div id="print-med-selamectin" class="print-med" data-medication="selamectin">
+        <h3>TOPICAL SELAMECTIN (120mg/1ml)</h3>
+        <p>Treats: Topical parasite support</p>
+        <p>Low (6mg/kg): <span id="print-selamectin-low"></span> mL</p>
+        <p>High (12mg/kg): <span id="print-selamectin-high"></span> mL</p>
+      </div>
+      <hr id="print-sep-selamectin" />
+      <div id="print-med-nitenpyram" class="print-med" data-medication="nitenpyram">
+        <h3>NITENPYRAM (11.4mg TABLET)</h3>
+        <p>Treats: Flea knockdown</p>
+        <p>Dosage: <span id="print-nitenpyram"></span></p>
+      </div>
+      <hr id="print-sep-nitenpyram" />
+      <div id="print-med-praziquantel" class="print-med" data-medication="praziquantel">
+        <h3>PRAZIQUANTEL (23mg TABLET)</h3>
+        <p>Treats: Tapeworm support</p>
+        <p>Dosage: <span id="print-praziquantel"></span> (5mg/kg)</p>
+      </div>
+      <hr id="print-sep-praziquantel" />
       <hr />
       <p class="print-footer">Prepared by Cats of Davidson. Always follow your veterinarian's instructions.</p>
     </section>

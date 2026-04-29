@@ -371,6 +371,22 @@ button:focus {
   background: var(--clay-panacur);
 }
 
+.ponazuril {
+  background: #f3dcff;
+}
+
+.selamectin {
+  background: #d9f9ff;
+}
+
+.nitenpyram {
+  background: #fff4d8;
+}
+
+.praziquantel {
+  background: #e8ffe3;
+}
+
 .badge-row {
   display: flex;
   justify-content: space-between;
@@ -424,6 +440,10 @@ button:focus {
   color: #4d4d4d;
   font-weight: 700;
   font-size: 0.94rem;
+}
+
+#nitenpyram-note {
+  min-height: 1.2rem;
 }
 
 .med-check-row {

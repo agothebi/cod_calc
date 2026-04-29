@@ -10,17 +10,34 @@ const FORMULAS = {
     metronidazole: { mgPerKg: 10, concentrationMgPerML: 50 },
     pyrantel: { mlPerLbs: 0.1, concentrationLabel: "50mg / 1ml" },
     albon: { mgPerKg: 55, concentrationMgPerML: 10, concentrationLabel: "50mg / 5ml" },
-    panacur: { mgPerKg: 50, concentrationMgPerML: 100 }
+    panacur: { mgPerKg: 50, concentrationMgPerML: 100 },
+    ponazuril: { mgPerKg: 50, concentrationMgPerML: 50, concentrationLabel: "50mg / 1ml" },
+    selamectin: { mgPerKgLow: 6, mgPerKgHigh: 12, concentrationMgPerML: 120, concentrationLabel: "120mg / 1ml" },
+    nitenpyram: { tabletMg: 11.4, minWeightLbs: 2, maxWeightLbs: 20, fixedTablets: 1, concentrationLabel: "11.4mg tablet" },
+    praziquantel: { mgPerKg: 5, tabletMg: 23, concentrationLabel: "23mg tablet" }
   }
 };
 const IOS_INSTALL_DISMISSED_KEY = "iosInstallHintDismissed";
 const IOS_INSTALL_LAST_SHOWN_KEY = "iosInstallHintLastShownAt";
 const IOS_INSTALL_COOLDOWN_MS = 1000 * 60 * 60 * 24 * 30;
-const MEDICATION_KEYS = ["metronidazole", "pyrantel", "albon", "panacur"];
+const MEDICATION_KEYS = [
+  "metronidazole",
+  "pyrantel",
+  "albon",
+  "panacur",
+  "ponazuril",
+  "selamectin",
+  "nitenpyram",
+  "praziquantel"
+];
 let medicationSelections = Object.fromEntries(MEDICATION_KEYS.map((key) => [key, false]));
 
 function formatML(value) {
   return value.toFixed(2);
+}
+
+function formatPraziquantelDose(praziquantel) {
+  return `${praziquantel.mgNeeded.toFixed(2)} mg (${praziquantel.tablets.toFixed(2)} tab)`;
 }
 
 function validateWeight(weightLbs) {
@@ -63,6 +80,25 @@ function calculateFromLbs(weightLbs) {
   const panacurMgNeeded = weightKg * FORMULAS.medications.panacur.mgPerKg;
   const panacurDosageML = panacurMgNeeded / FORMULAS.medications.panacur.concentrationMgPerML;
 
+  // Ponazuril
+  const ponazurilMgNeeded = weightKg * FORMULAS.medications.ponazuril.mgPerKg;
+  const ponazurilDosageML = ponazurilMgNeeded / FORMULAS.medications.ponazuril.concentrationMgPerML;
+
+  // Topical Selamectin range
+  const selamectinLowMg = weightKg * FORMULAS.medications.selamectin.mgPerKgLow;
+  const selamectinHighMg = weightKg * FORMULAS.medications.selamectin.mgPerKgHigh;
+  const selamectinLowML = selamectinLowMg / FORMULAS.medications.selamectin.concentrationMgPerML;
+  const selamectinHighML = selamectinHighMg / FORMULAS.medications.selamectin.concentrationMgPerML;
+
+  // Nitenpyram fixed-tablet rule
+  const nitenpyramApplicable =
+    weightLbs >= FORMULAS.medications.nitenpyram.minWeightLbs && weightLbs <= FORMULAS.medications.nitenpyram.maxWeightLbs;
+  const nitenpyramTablets = nitenpyramApplicable ? FORMULAS.medications.nitenpyram.fixedTablets : 0;
+
+  // Praziquantel tablet calculation with no rounding
+  const praziquantelMgNeeded = weightKg * FORMULAS.medications.praziquantel.mgPerKg;
+  const praziquantelTablets = praziquantelMgNeeded / FORMULAS.medications.praziquantel.tabletMg;
+
   return {
     input: {
       weightLbs,
@@ -80,6 +116,21 @@ function calculateFromLbs(weightLbs) {
     },
     panacur: {
       dosageML: panacurDosageML
+    },
+    ponazuril: {
+      dosageML: ponazurilDosageML
+    },
+    selamectin: {
+      lowML: selamectinLowML,
+      highML: selamectinHighML
+    },
+    nitenpyram: {
+      tablets: nitenpyramTablets,
+      applicable: nitenpyramApplicable
+    },
+    praziquantel: {
+      mgNeeded: praziquantelMgNeeded,
+      tablets: praziquantelTablets
     }
   };
 }
@@ -104,7 +155,12 @@ function calculate(weightInput, unit) {
   }
 
   const results = calculateFromLbs(weightLbs);
-  return { ok: true, results, warning: validation.warning || "" };
+  const warnings = [];
+  if (validation.warning) warnings.push(validation.warning);
+  if (!results.nitenpyram.applicable) {
+    warnings.push("Nitenpyram fixed 11.4mg tablet applies only for cats between 2 and 20 lbs.");
+  }
+  return { ok: true, results, warning: warnings.join(" ") };
 }
 
 function setValidationMessage(message, isWarning) {
@@ -140,6 +196,16 @@ function showResults(results) {
   document.getElementById("albon-day1-value").textContent = formatML(results.albon.day1ML);
   document.getElementById("albon-day2to9-value").textContent = formatML(results.albon.day2to9ML);
   document.getElementById("panacur-value").textContent = formatML(results.panacur.dosageML);
+  document.getElementById("ponazuril-value").textContent = formatML(results.ponazuril.dosageML);
+  document.getElementById("selamectin-low-value").textContent = formatML(results.selamectin.lowML);
+  document.getElementById("selamectin-high-value").textContent = formatML(results.selamectin.highML);
+  document.getElementById("nitenpyram-value").textContent = results.nitenpyram.applicable
+    ? String(results.nitenpyram.tablets)
+    : "N/A";
+  document.getElementById("nitenpyram-note").textContent = results.nitenpyram.applicable
+    ? "Use only for 2-20 lbs: fixed 1 tablet"
+    : "Not in 2-20 lbs range: do not use this fixed-tablet rule";
+  document.getElementById("praziquantel-value").textContent = formatPraziquantelDose(results.praziquantel);
   resetMedicationSelections();
   setResultsMessage("");
 
@@ -254,6 +320,13 @@ function triggerPrint(name) {
   document.getElementById("print-albon-day1").textContent = formatML(currentResults.albon.day1ML);
   document.getElementById("print-albon-day2to9").textContent = formatML(currentResults.albon.day2to9ML);
   document.getElementById("print-panacur").textContent = formatML(currentResults.panacur.dosageML);
+  document.getElementById("print-ponazuril").textContent = formatML(currentResults.ponazuril.dosageML);
+  document.getElementById("print-selamectin-low").textContent = formatML(currentResults.selamectin.lowML);
+  document.getElementById("print-selamectin-high").textContent = formatML(currentResults.selamectin.highML);
+  document.getElementById("print-nitenpyram").textContent = currentResults.nitenpyram.applicable
+    ? "1 tablet (11.4mg) for 2-20 lbs"
+    : "Not applicable: outside 2-20 lbs range";
+  document.getElementById("print-praziquantel").textContent = formatPraziquantelDose(currentResults.praziquantel);
   applyPrintMedicationVisibility(selectedMeds);
 
   closePrintModal();
@@ -265,7 +338,11 @@ function syncConcentrationLabels() {
     "metro-concentration": `${FORMULAS.medications.metronidazole.concentrationMgPerML}mg / 1ml`,
     "pyrantel-concentration": FORMULAS.medications.pyrantel.concentrationLabel,
     "albon-concentration": FORMULAS.medications.albon.concentrationLabel,
-    "panacur-concentration": `${FORMULAS.medications.panacur.concentrationMgPerML}mg / 1ml`
+    "panacur-concentration": `${FORMULAS.medications.panacur.concentrationMgPerML}mg / 1ml`,
+    "ponazuril-concentration": FORMULAS.medications.ponazuril.concentrationLabel,
+    "selamectin-concentration": FORMULAS.medications.selamectin.concentrationLabel,
+    "nitenpyram-concentration": FORMULAS.medications.nitenpyram.concentrationLabel,
+    "praziquantel-concentration": FORMULAS.medications.praziquantel.concentrationLabel
   };
   Object.entries(labelMap).forEach(([id, text]) => {
     const el = document.getElementById(id);
@@ -289,6 +366,11 @@ function runVerification() {
   checks.push(canonical.ok && formatML(canonical.results.albon.day1ML) === "2.34");
   checks.push(canonical.ok && formatML(canonical.results.albon.day2to9ML) === "1.17");
   checks.push(canonical.ok && formatML(canonical.results.panacur.dosageML) === "1.06");
+  checks.push(canonical.ok && formatML(canonical.results.ponazuril.dosageML) === "2.13");
+  checks.push(canonical.ok && formatML(canonical.results.selamectin.lowML) === "0.11");
+  checks.push(canonical.ok && formatML(canonical.results.selamectin.highML) === "0.21");
+  checks.push(canonical.ok && canonical.results.nitenpyram.applicable === true && canonical.results.nitenpyram.tablets === 1);
+  checks.push(canonical.ok && canonical.results.praziquantel.tablets.toFixed(2) === "0.46");
 
   const lbsRun = calculate(8.5, "lbs");
   const kgRun = calculate(8.5 * FORMULAS.lbToKg, "kg");
@@ -315,9 +397,18 @@ function runVerification() {
         formatML(lbsResult.results.pyrantel.dosageML) === formatML(kgResult.results.pyrantel.dosageML) &&
         formatML(lbsResult.results.albon.day1ML) === formatML(kgResult.results.albon.day1ML) &&
         formatML(lbsResult.results.albon.day2to9ML) === formatML(kgResult.results.albon.day2to9ML) &&
-        formatML(lbsResult.results.panacur.dosageML) === formatML(kgResult.results.panacur.dosageML)
+        formatML(lbsResult.results.panacur.dosageML) === formatML(kgResult.results.panacur.dosageML) &&
+        formatML(lbsResult.results.ponazuril.dosageML) === formatML(kgResult.results.ponazuril.dosageML) &&
+        formatML(lbsResult.results.selamectin.lowML) === formatML(kgResult.results.selamectin.lowML) &&
+        formatML(lbsResult.results.selamectin.highML) === formatML(kgResult.results.selamectin.highML) &&
+        lbsResult.results.nitenpyram.applicable === kgResult.results.nitenpyram.applicable &&
+        lbsResult.results.praziquantel.tablets.toFixed(2) === kgResult.results.praziquantel.tablets.toFixed(2)
     );
   });
+
+  checks.push(calculate(1.99, "lbs").ok === true && calculate(1.99, "lbs").results.nitenpyram.applicable === false);
+  checks.push(calculate(20.0, "lbs").ok === true && calculate(20.0, "lbs").results.nitenpyram.applicable === true);
+  checks.push(calculate(20.01, "lbs").ok === true && calculate(20.01, "lbs").results.nitenpyram.applicable === false);
 
   const passed = checks.every(Boolean);
   return { passed, checks, passedCount: checks.filter(Boolean).length, total: checks.length };
