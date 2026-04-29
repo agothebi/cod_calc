@@ -316,6 +316,8 @@ button:focus {
   padding: 16px;
   transform: translateY(14px);
   opacity: 0;
+  position: relative;
+  isolation: isolate;
 }
 
 .screen.active .card-enter {
@@ -410,10 +412,100 @@ button:focus {
   font-weight: 700;
 }
 
+.med-check-row {
+  margin-top: 14px;
+  margin-bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: var(--shadow-clay-inset);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.med-check-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.med-check-box {
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+  border: 2px solid #53a85f;
+  background: #f2fff3;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  flex: 0 0 24px;
+}
+
+.med-check-box::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+}
+
+.med-check-label {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #2f5c37;
+}
+
+.med-check-input:checked + .med-check-box {
+  background: #5fc16e;
+  border-color: #4da25b;
+}
+
+.med-check-input:checked + .med-check-box::after {
+  opacity: 1;
+}
+
+.med-check-input:focus-visible + .med-check-box {
+  box-shadow: var(--focus-ring), inset 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.med-card.med-given::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.med-card.med-given .dosage-display,
+.med-card.med-given .albon-rows,
+.med-card.med-given .schedule,
+.med-card.med-given .concentration {
+  opacity: 0.78;
+}
+
 .print-btn {
   margin: 24px auto 0;
   display: block;
   width: min(460px, 100%);
+}
+
+.results-message {
+  min-height: 1.4rem;
+  margin: 10px 0 0;
+  text-align: center;
+  font-weight: 700;
+  color: #b04646;
 }
 
 .modal-overlay {
@@ -568,6 +660,12 @@ button:focus {
   .link-btn,
   .secondary-btn {
     min-height: 44px;
+  }
+
+  .med-check-row {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
   }
 }
 

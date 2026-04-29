@@ -16,6 +16,8 @@ const FORMULAS = {
 const IOS_INSTALL_DISMISSED_KEY = "iosInstallHintDismissed";
 const IOS_INSTALL_LAST_SHOWN_KEY = "iosInstallHintLastShownAt";
 const IOS_INSTALL_COOLDOWN_MS = 1000 * 60 * 60 * 24 * 30;
+const MEDICATION_KEYS = ["metronidazole", "pyrantel", "albon", "panacur"];
+let medicationSelections = Object.fromEntries(MEDICATION_KEYS.map((key) => [key, false]));
 
 function formatML(value) {
   return value.toFixed(2);
@@ -138,8 +140,52 @@ function showResults(results) {
   document.getElementById("albon-day1-value").textContent = formatML(results.albon.day1ML);
   document.getElementById("albon-day2to9-value").textContent = formatML(results.albon.day2to9ML);
   document.getElementById("panacur-value").textContent = formatML(results.panacur.dosageML);
+  resetMedicationSelections();
+  setResultsMessage("");
 
   showScreen("results-screen");
+}
+
+function setResultsMessage(message) {
+  const el = document.getElementById("results-message");
+  if (!el) return;
+  el.textContent = message || "";
+}
+
+function setMedicationCardState(medication, isGiven) {
+  const card = document.querySelector(`.med-card[data-medication="${medication}"]`);
+  if (card) {
+    card.classList.toggle("med-given", isGiven);
+  }
+}
+
+function resetMedicationSelections() {
+  medicationSelections = Object.fromEntries(MEDICATION_KEYS.map((key) => [key, false]));
+  document.querySelectorAll(".med-check-input").forEach((checkbox) => {
+    checkbox.checked = false;
+    setMedicationCardState(checkbox.dataset.medication, false);
+  });
+}
+
+function getSelectedMedications() {
+  return MEDICATION_KEYS.filter((key) => medicationSelections[key]);
+}
+
+function applyPrintMedicationVisibility(selectedMeds) {
+  const visibleSet = new Set(selectedMeds);
+  MEDICATION_KEYS.forEach((key) => {
+    const medEl = document.getElementById(`print-med-${key}`);
+    if (medEl) {
+      medEl.style.display = visibleSet.has(key) ? "block" : "none";
+    }
+  });
+
+  const lastVisibleMedication = [...MEDICATION_KEYS].reverse().find((key) => visibleSet.has(key));
+  MEDICATION_KEYS.forEach((key) => {
+    const sepEl = document.getElementById(`print-sep-${key}`);
+    if (!sepEl) return;
+    sepEl.style.display = visibleSet.has(key) && key !== lastVisibleMedication ? "block" : "none";
+  });
 }
 
 function resetToInput() {
@@ -155,6 +201,13 @@ function resetToInput() {
 }
 
 function openPrintModal() {
+  if (!currentResults) return;
+  const selectedMeds = getSelectedMedications();
+  if (selectedMeds.length === 0) {
+    setResultsMessage("Select at least one medication before printing the dosage sheet.");
+    return;
+  }
+  setResultsMessage("");
   const modal = document.getElementById("print-modal");
   const nameInput = document.getElementById("cat-name-input");
   modal.classList.add("open");
@@ -174,6 +227,12 @@ function closePrintModal() {
 function triggerPrint(name) {
   catName = (name || "").trim() || "Your Cat";
   if (!currentResults) return;
+  const selectedMeds = getSelectedMedications();
+  if (selectedMeds.length === 0) {
+    closePrintModal();
+    setResultsMessage("Select at least one medication before printing the dosage sheet.");
+    return;
+  }
 
   const today = new Date().toLocaleDateString();
   const lbs = currentResults.input.weightLbs.toFixed(2);
@@ -188,6 +247,7 @@ function triggerPrint(name) {
   document.getElementById("print-albon-day1").textContent = formatML(currentResults.albon.day1ML);
   document.getElementById("print-albon-day2to9").textContent = formatML(currentResults.albon.day2to9ML);
   document.getElementById("print-panacur").textContent = formatML(currentResults.panacur.dosageML);
+  applyPrintMedicationVisibility(selectedMeds);
 
   closePrintModal();
   window.print();
@@ -304,6 +364,17 @@ function attachEvents() {
 
   document.querySelectorAll(".unit-btn").forEach((btn) => {
     btn.addEventListener("click", () => setUnit(btn.dataset.unit));
+  });
+  document.querySelectorAll(".med-check-input").forEach((checkbox) => {
+    checkbox.addEventListener("change", (event) => {
+      const medication = event.currentTarget.dataset.medication;
+      const isChecked = event.currentTarget.checked;
+      medicationSelections[medication] = isChecked;
+      setMedicationCardState(medication, isChecked);
+      if (isChecked) {
+        setResultsMessage("");
+      }
+    });
   });
 
   form.addEventListener("submit", (event) => {
