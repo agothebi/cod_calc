@@ -9,7 +9,7 @@ const FORMULAS = {
   medications: {
     metronidazole: { mgPerKg: 10, concentrationMgPerML: 50 },
     pyrantel: { mlPerLbs: 0.1, concentrationLabel: "50mg / 1ml" },
-    albon: { mgPerKg: 55, concentrationMgPerML: 10, concentrationLabel: "50mg / 5ml" },
+    albon: { mgPerKg: 55, mlDivisor: 50, concentrationLabel: "50mg / 5ml" },
     panacur: { mgPerKg: 50, concentrationMgPerML: 100 },
     ponazuril: { mgPerKg: 50, concentrationMgPerML: 50, concentrationLabel: "50mg / 1ml" },
     selamectin: { mgPerKgLow: 6, mgPerKgHigh: 12, concentrationMgPerML: 120, concentrationLabel: "120mg / 1ml" },
@@ -73,7 +73,7 @@ function calculateFromLbs(weightLbs) {
 
   // Albon
   const albonMgNeeded = weightKg * FORMULAS.medications.albon.mgPerKg;
-  const albonDay1ML = albonMgNeeded / FORMULAS.medications.albon.concentrationMgPerML;
+  const albonDay1ML = albonMgNeeded / FORMULAS.medications.albon.mlDivisor;
   const albonDay2to9ML = albonDay1ML / 2;
 
   // Panacur
@@ -365,6 +365,22 @@ function runVerification() {
   checks.push(canonical.ok && formatML(canonical.results.pyrantel.dosageML) === "0.47");
   checks.push(canonical.ok && formatML(canonical.results.albon.day1ML) === "2.34");
   checks.push(canonical.ok && formatML(canonical.results.albon.day2to9ML) === "1.17");
+
+  const fiveLb = calculate(5, "lbs");
+  checks.push(fiveLb.ok && formatML(fiveLb.results.albon.day1ML) === "2.49");
+  checks.push(fiveLb.ok && formatML(fiveLb.results.albon.day2to9ML) === "1.25");
+
+  // Regression guard: Albon must use Excel /50 divisor, not pharmacological 10 mg/mL.
+  if (fiveLb.ok) {
+    const fiveLbKg = fiveLb.results.input.weightKg;
+    const wrongPharmDivisorML = (fiveLbKg * 55) / 10;
+    const excelDivisorML = (fiveLbKg * 55) / 50;
+    checks.push(Math.abs(fiveLb.results.albon.day1ML - wrongPharmDivisorML) > 1e-6);
+    checks.push(Math.abs(fiveLb.results.albon.day1ML - excelDivisorML) < epsilon);
+  } else {
+    checks.push(false, false);
+  }
+
   checks.push(canonical.ok && formatML(canonical.results.panacur.dosageML) === "1.06");
   checks.push(canonical.ok && formatML(canonical.results.ponazuril.dosageML) === "2.13");
   checks.push(canonical.ok && formatML(canonical.results.selamectin.lowML) === "0.11");
@@ -511,9 +527,11 @@ function init() {
   registerServiceWorker();
   const verification = runVerification();
   if (!verification.passed) {
-    // Keep signal visible to developers during local runs.
     // eslint-disable-next-line no-console
-    console.error("Formula verification failed", verification);
+    console.error(
+      `CRITICAL: Formula verification failed (${verification.passedCount}/${verification.total}). Dosage math must not ship broken.`,
+      verification
+    );
   } else {
     // eslint-disable-next-line no-console
     console.info(`Formula verification passed (${verification.passedCount}/${verification.total})`);
